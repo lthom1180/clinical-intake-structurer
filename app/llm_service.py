@@ -47,7 +47,7 @@ def extract_clinical_criteria(raw_text: str) -> ClinicalCriteriaExtraction:
     api_key = os.getenv("GEMINI_API_KEY", "").strip()
 
     # Run in Demo Mode if no real API key is provided
-    if not api_key or api_key.lower() in {"demo", "your_gemini_api_key_here"}:
+    if not api_key or api_key.lower() in {"demo"}:
         return _mock_demo_extraction(raw_text)
 
     client = genai.Client(api_key=api_key)
