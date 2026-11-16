@@ -1,6 +1,6 @@
 # Clinical Research Intake Structurer
 
-[![Run Unit Tests](https://github.com/YOUR_GITHUB_USERNAME/clinical-intake-structurer/actions/workflows/test.yml/badge.svg)](https://github.com/YOUR_GITHUB_USERNAME/clinical-intake-structurer/actions/workflows/test.yml)
+[![Run Unit Tests](https://github.com/lthom1180/clinical-intake-structurer/actions/workflows/test.yml/badge.svg)](https://github.com/YOUR_GITHUB_USERNAME/clinical-intake-structurer/actions/workflows/test.yml)
 ![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-teal.svg)
 ![Docker](https://img.shields.io/badge/Docker-Containerized-blueviolet.svg)
