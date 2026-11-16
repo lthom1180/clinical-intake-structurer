@@ -36,5 +36,5 @@ The fastest way to run the application locally is via Docker Compose—no local 
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/YOUR_GITHUB_USERNAME/clinical-intake-structurer.git](https://github.com/YOUR_GITHUB_USERNAME/clinical-intake-structurer.git)
+   git clone [https://github.com/lthom1180/clinical-intake-structurer.git](https://github.com/lthom1180/clinical-intake-structurer.git)
    cd clinical-intake-structurer
