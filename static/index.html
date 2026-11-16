@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clinical Research Intake Structurer</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --primary: #00274c; /* U-M Navy nod */
+      --primary-hover: #001b36;
+      --accent: #0f766e;
+      --border: #cbd5e1;
+      --focus: #2563eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 2rem 1rem;
+    }
+    main { max-width: 900px; margin: 0 auto; }
+    header { margin-bottom: 2rem; border-bottom: 2px solid var(--border); padding-bottom: 1rem; }
+    h1 { margin: 0 0 0.25rem; color: var(--primary); font-size: 1.75rem; }
+    p.subtitle { margin: 0; color: var(--muted); }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      padding: 0.75rem;
+      font: inherit;
+      border: 1px solid #94a3b8;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    textarea:focus, button:focus {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
+    button {
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+      padding: 0.6rem 1.1rem;
+      border-radius: 6px;
+      border: 1px solid transparent;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: #e2e8f0; color: var(--text); border-color: #cbd5e1; }
+    .btn-secondary:hover { background: #cbd5e1; }
+    #status { margin-top: 0.75rem; font-weight: 500; color: var(--accent); min-height: 1.5rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+    .badge {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin: 0.15rem;
+    }
+    ul { padding-left: 1.25rem; margin: 0.25rem 0 0; }
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Clinical Research Intake Structurer</h1>
+      <p class="subtitle">Extract schema-validated trial eligibility criteria from unstructured clinical notes.</p>
+    </header>
+
+    <section class="card" aria-labelledby="input-heading">
+      <h2 id="input-heading" style="margin-top:0;">1. Unstructured Clinical Note</h2>
+      <label for="clinical-note">Paste eligibility criteria or patient intake summary (minimum 20 characters):</label>
+      <textarea id="clinical-note" placeholder="e.g., Patients aged 18 to 75 with confirmed Type 2 Diabetes..."></textarea>
+
+      <div class="btn-row">
+        <button type="button" class="btn-primary" id="extract-btn">Extract &amp; Save Criteria</button>
+        <button type="button" class="btn-secondary" id="sample-diabetes">Load Diabetes Sample</button>
+        <button type="button" class="btn-secondary" id="sample-oncology">Load Oncology Sample</button>
+      </div>
+      <div id="status" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="card" id="result-section" hidden aria-labelledby="output-heading">
+      <h2 id="output-heading" style="margin-top:0;">2. Validated Structured Output</h2>
+      <div id="structured-view"></div>
+      <details style="margin-top:1rem;">
+        <summary style="cursor:pointer; font-weight:600;">View Raw Validated JSON</summary>
+        <pre id="json-output"></pre>
+      </details>
+    </section>
+
+    <section class="card" aria-labelledby="history-heading">
+      <h2 id="history-heading" style="margin-top:0;">3. Recent Database Records</h2>
+      <div id="history-list"><p style="color:var(--muted);">No records extracted yet.</p></div>
+    </section>
+  </main>
+
+  <script>
+    const noteInput = document.getElementById("clinical-note");
+    const statusEl = document.getElementById("status");
+    const resultSection = document.getElementById("result-section");
+    const structuredView = document.getElementById("structured-view");
+    const jsonOutput = document.getElementById("json-output");
+    const historyList = document.getElementById("history-list");
+
+    const SAMPLES = {
+      diabetes: "Protocol DM-304: Seeking adults ages 18 to 75 with confirmed Type 2 Diabetes Mellitus for at least 6 months on stable metformin monotherapy (>= 8 weeks). Screening HbA1c must be between 7.5% and 10.5% with BMI 25.0 to 40.0 kg/m2. Exclusion: Type 1 diabetes, history of ketoacidosis, eGFR < 45 mL/min/1.73m2, or pregnancy.",
+      oncology: "Study ONC-812: Patients >= 21 years old with histologically confirmed Stage IIIB or IV Non-Small Cell Lung Cancer (NSCLC), ECOG performance status 0-1, PD-L1 TPS >= 50%, and ANC >= 1,500/uL. Excludes active untreated CNS metastases, prior immunotherapy within 4 weeks, or active autoimmune disease."
+    };
+
+    document.getElementById("sample-diabetes").addEventListener("click", () => { noteInput.value = SAMPLES.diabetes; });
+    document.getElementById("sample-oncology").addEventListener("click", () => { noteInput.value = SAMPLES.oncology; });
+
+    function renderRecord(data) {
+      resultSection.hidden = false;
+      const ageText = data.min_age || data.max_age
+        ? `${data.min_age ?? "Any"} – ${data.max_age ?? "No upper limit"} yrs`
+        : "Not specified";
+
+      structuredView.innerHTML = `
+        <h3 style="margin-bottom:0.5rem;">${data.study_title}</h3>
+        <p><strong>Eligible Age Range:</strong> ${ageText}</p>
+        <p><strong>Conditions:</strong> ${data.primary_conditions.map(c => `<span class="badge">${c}</span>`).join(" ") || "None listed"}</p>
+        <div class="grid">
+          <div>
+            <strong>Inclusion Criteria</strong>
+            <ul>${data.inclusion_criteria.map(i => `<li>${i}</li>`).join("") || "<li>None listed</li>"}</ul>
+          </div>
+          <div>
+            <strong>Exclusion Criteria</strong>
+            <ul>${data.exclusion_criteria.map(e => `<li>${e}</li>`).join("") || "<li>None listed</li>"}</ul>
+          </div>
+          <div>
+            <strong>Biomarkers &amp; Labs</strong>
+            <ul>${data.biomarkers_or_labs.map(b => `<li>${b}</li>`).join("") || "<li>None listed</li>"}</ul>
+          </div>
+        </div>
+      `;
+      jsonOutput.textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function loadHistory() {
+      const res = await fetch("/api/records?limit=5");
+      if (!res.ok) return;
+      const records = await res.json();
+      if (!records.length) return;
+      historyList.innerHTML = `<ul>${records.map(r =>
+        `<li><strong>#${r.id} – ${r.study_title}</strong> (${r.primary_conditions.join(", ") || "General"})</li>`
+      ).join("")}</ul>`;
+    }
+
+    document.getElementById("extract-btn").addEventListener("click", async () => {
+      const raw_text = noteInput.value.trim();
+      if (raw_text.length < 20) {
+        statusEl.textContent = "Please enter at least 20 characters of clinical text.";
+        return;
+      }
+      statusEl.textContent = "Extracting and validating structured criteria...";
+      try {
+        const res = await fetch("/api/extract", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ raw_text })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Extraction failed");
+        statusEl.textContent = `Saved record #${data.id} to database.`;
+        renderRecord(data);
+        loadHistory();
+      } catch (err) {
+        statusEl.textContent = `Error: ${err.message}`;
+      }
+    });
+
+    loadHistory();
+  </script>
+</body>
+</html>
