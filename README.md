@@ -32,7 +32,7 @@ Research and clinical software must be equitable and accessible to all users. Th
 
 ## 🚀 Quick Start (Docker Compose)
 
-The fastest way to run the application locally is via Docker Compose—no local Python environment required.
+The fastest way to run the application locally is via Docker Compose, no local Python environment required.
 
 1. **Clone the repository:**
    ```bash
